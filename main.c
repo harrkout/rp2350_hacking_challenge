@@ -35,6 +35,19 @@ static inline void lock_otp_secret() {
 	cmd.flags = OTP_DATA_PAGE48_LOCK1_ROW | OTP_CMD_ECC_BITS | OTP_CMD_WRITE_BITS;
 	// 3 redundant copies
 	uint32_t value = 0x3c3c3c;
+
+	/* OG line fails to build during make
+	*
+	*	> uint32_t ret = rom_func_otp_access(&value, sizeof(value), cmd);
+	*	
+	*	Because, in `pico-sdk/src/rp2_common/pico_bootrom/include/pico/bootrom.h:62`
+	*	`rom_func_otp_access()` expects a pointer to a `uint8_t`, while a pointer to a `uint32_t` was provided.
+	*
+	*	> `typedef int (*rom_func_otp_access_fn)(uint8_t *buf, uint32_t buf_len, otp_cmd_t cmd);`
+	*/
+
+	uint32_t ret = rom_func_otp_access((uint8_t *)&value, sizeof(value), cmd);
+	
 	uint32_t ret = rom_func_otp_access(&value, sizeof(value), cmd);
 	if (ret) {
 		dprintf("\tLocking failed with error: %d\n", ret);
